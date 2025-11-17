@@ -14,9 +14,9 @@ A modern, feature-rich Minecraft server list platform with voting, revenue shari
 
 ### 💰 Monetization
 - **Ad Integration** - Optional Google AdSense integration per server
+- **Auction System** - Bid on promoted spots for maximum visibility
 - **Promoted Listings** - Featured spots at the top of the list
-- **Percentage-Based Revenue Sharing** - 30% of ad revenue distributed by vote share
-- **Popularity Bonuses** - Top 10 servers get extra 20% of ad revenue
+- **Percentage-Based Revenue Sharing** - 75% of ad revenue to servers (60% vote + 15% bonus)
 - **Server Owner Dashboard** - Track earnings, votes, and statistics
 
 ### 🎨 Modern Design
@@ -137,6 +137,27 @@ npm run distribute:revenue 1000  # Replace 1000 with actual monthly ad revenue
 
 Run this at the start of each month after tallying ad revenue.
 
+### Auction Closer
+
+To close ended auctions and create promoted listings for winners:
+
+```bash
+# Run hourly to check for ended auctions
+npm run close:auctions
+
+# This will:
+# - Close auctions that have ended
+# - Assign winners (highest bidders)
+# - Create 7-day promoted listings for winners
+# - Mark losing bids as REFUNDED
+# - Record revenue from winning bids
+```
+
+Set up as an hourly cron job:
+```bash
+0 * * * * cd /path/to/project && npm run close:auctions
+```
+
 ## Setting Up Votifier
 
 Server owners can configure Votifier to receive vote notifications:
@@ -181,8 +202,9 @@ If platform earns $1,000/month in ads and your server gets 5,000 votes out of 10
 
 Edit in `.env`:
 ```env
-AD_REVENUE_POOL_PERCENT=30         # % of ad revenue for vote share
-POPULARITY_BONUS_PERCENT=20        # % of ad revenue for top 10 bonus
+AD_REVENUE_POOL_PERCENT=60         # % of ad revenue for vote share (60%)
+POPULARITY_BONUS_PERCENT=15        # % of ad revenue for top 10 bonus (15%)
+# Total: 75% to servers, 25% platform keeps
 ```
 
 ## Admin Dashboard
@@ -234,6 +256,12 @@ UPDATE "User" SET role = 'ADMIN' WHERE email = 'your@email.com';
 
 ### Admin
 - `POST /api/admin/servers/[id]/approve` - Approve server (admin only)
+
+### Auctions
+- `GET /api/auctions` - List all active auctions
+- `GET /api/auctions/[id]` - Get auction details with all bids
+- `POST /api/auctions/[id]/bid` - Place a bid (authenticated, server owner)
+- `POST /api/auctions` - Create auction (admin only)
 
 ## Deployment
 
