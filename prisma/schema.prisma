@@ -23,6 +23,7 @@ model User {
   servers       Server[]
   reviews       Review[]
   votes         Vote[]
+  bids          Bid[]
   accounts      Account[]
   sessions      Session[]
 }
@@ -199,6 +200,7 @@ model PromotedListing {
   price       Float
   paid        Boolean  @default(false)
   active      Boolean  @default(true)
+  auctionId   String?  // If this listing came from an auction
 
   serverId    String
   server      Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
@@ -206,6 +208,55 @@ model PromotedListing {
   createdAt   DateTime @default(now())
 
   @@index([active, startDate, endDate])
+}
+
+model Auction {
+  id          String        @id @default(cuid())
+  position    Int           // Which promoted spot (1, 2, 3, etc.)
+  startDate   DateTime
+  endDate     DateTime
+  startingBid Float
+  reservePrice Float?       // Minimum price to win
+  status      AuctionStatus @default(ACTIVE)
+  winnerId    String?       // Winning bid ID
+
+  bids        Bid[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status, endDate])
+}
+
+enum AuctionStatus {
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+model Bid {
+  id        String    @id @default(cuid())
+  amount    Float
+  status    BidStatus @default(ACTIVE)
+
+  auctionId String
+  auction   Auction   @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  serverId  String
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
+
+  @@index([auctionId, amount])
+  @@index([userId, createdAt])
+}
+
+enum BidStatus {
+  ACTIVE
+  OUTBID
+  WON
+  REFUNDED
 }
 
 model Revenue {

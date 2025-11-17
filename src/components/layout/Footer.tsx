@@ -25,8 +25,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/promoted" className="text-muted-foreground hover:text-primary transition-colors">
-                  Promoted Servers
+                <Link href="/auctions" className="text-muted-foreground hover:text-primary transition-colors">
+                  Promoted Auctions
                 </Link>
               </li>
               <li>

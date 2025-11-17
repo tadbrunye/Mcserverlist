@@ -23,8 +23,8 @@ export function Header() {
             <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">
               Servers
             </Link>
-            <Link href="/promoted" className="text-sm font-medium hover:text-primary transition-colors">
-              Promoted
+            <Link href="/auctions" className="text-sm font-medium hover:text-primary transition-colors">
+              Auctions
             </Link>
             <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">
               About
