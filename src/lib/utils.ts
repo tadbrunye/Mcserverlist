@@ -36,24 +36,21 @@ export function formatRelativeTime(date: Date): string {
 }
 
 /**
- * Calculate revenue share for a server based on their vote percentage
- * @param serverVotes - Number of votes this server received
- * @param totalVotes - Total votes across all servers
+ * Calculate revenue per vote from the pool
+ * @param totalVotesWithAds - Total votes from servers with ads enabled
  * @param totalAdRevenue - Total ad revenue for the period
- * @returns Revenue amount for this server
+ * @returns Value per vote
  */
-export function calculateRevenueShare(
-  serverVotes: number,
-  totalVotes: number,
+export function calculateValuePerVote(
+  totalVotesWithAds: number,
   totalAdRevenue: number
 ): number {
-  if (totalVotes === 0) return 0
+  if (totalVotesWithAds === 0) return 0
 
   const poolPercent = parseInt(process.env.AD_REVENUE_POOL_PERCENT || '30')
   const revenuePool = totalAdRevenue * (poolPercent / 100)
-  const voteShare = serverVotes / totalVotes
 
-  return revenuePool * voteShare
+  return revenuePool / totalVotesWithAds
 }
 
 /**

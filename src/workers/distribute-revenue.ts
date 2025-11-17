@@ -39,20 +39,29 @@ async function distributeRevenue(monthlyAdRevenue: number) {
       return
     }
 
-    // Calculate total votes
+    // Calculate total votes from servers WITH ads enabled
     const totalVotes = servers.reduce((sum, s) => sum + s.monthlyVotes, 0)
+    const votesWithAds = servers
+      .filter(s => s.adsEnabled)
+      .reduce((sum, s) => sum + s.monthlyVotes, 0)
+
     console.log(`\n📊 Stats:`)
     console.log(`  Total servers: ${servers.length}`)
-    console.log(`  Total votes: ${totalVotes}`)
+    console.log(`  Total votes (all): ${totalVotes}`)
+    console.log(`  Total votes (ads enabled): ${votesWithAds}`)
 
     const poolPercent = parseInt(process.env.AD_REVENUE_POOL_PERCENT || '30')
     const bonusPercent = parseInt(process.env.POPULARITY_BONUS_PERCENT || '20')
     const votePool = monthlyAdRevenue * (poolPercent / 100)
     const bonusPool = monthlyAdRevenue * (bonusPercent / 100)
 
+    // Calculate value per vote (only for servers with ads enabled)
+    const valuePerVote = votesWithAds > 0 ? votePool / votesWithAds : 0
+
     console.log(`\n💵 Revenue Pools:`)
     console.log(`  Vote share pool (${poolPercent}%): $${votePool.toFixed(2)}`)
     console.log(`  Popularity bonus pool (${bonusPercent}%): $${bonusPool.toFixed(2)}`)
+    console.log(`  Value per vote: $${valuePerVote.toFixed(6)}`)
 
     let totalDistributed = 0
 
@@ -63,25 +72,21 @@ async function distributeRevenue(monthlyAdRevenue: number) {
       const server = servers[i]
       let serverRevenue = 0
 
-      // Calculate vote share (all servers get this based on their vote %)
-      const voteShare = calculateRevenueShare(
-        server.monthlyVotes,
-        totalVotes,
-        monthlyAdRevenue
-      )
-      serverRevenue += voteShare
+      // Servers with ads disabled get NOTHING
+      if (!server.adsEnabled) {
+        console.log(`  ⚠️  ${server.name.padEnd(30)} ${server.monthlyVotes.toString().padStart(5)} votes → $0.00 (ads disabled)`)
+        continue
+      }
+
+      // Calculate vote revenue (fixed amount per vote)
+      const voteRevenue = server.monthlyVotes * valuePerVote
+      serverRevenue += voteRevenue
 
       // Add popularity bonus for top 10
       let bonus = 0
       if (i < 10) {
         bonus = calculatePopularityBonus(i + 1, monthlyAdRevenue)
         serverRevenue += bonus
-      }
-
-      // Only servers with ads enabled get the full amount
-      if (!server.adsEnabled) {
-        serverRevenue *= 0.5 // 50% reduction if ads disabled
-        console.log(`  ⚠️  ${server.name}: Ads disabled, 50% penalty applied`)
       }
 
       // Update server revenue
@@ -96,9 +101,9 @@ async function distributeRevenue(monthlyAdRevenue: number) {
       await prisma.revenue.create({
         data: {
           amount: serverRevenue,
-          type: server.adsEnabled ? 'VOTE_SHARE' : 'VOTE_SHARE',
+          type: 'VOTE_SHARE',
           source: server.id,
-          description: `Monthly distribution for ${server.name} (${server.monthlyVotes} votes)`,
+          description: `Monthly distribution for ${server.name} (${server.monthlyVotes} votes @ $${valuePerVote.toFixed(6)}/vote)`,
           distributed: true,
         },
       })

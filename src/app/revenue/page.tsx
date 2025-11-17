@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card'
-import { DollarSign, TrendingUp, Award, Calculator } from 'lucide-react'
+import { DollarSign, TrendingUp, Award } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 
@@ -33,14 +33,14 @@ export default function RevenuePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div className="p-6 rounded-lg border bg-card">
                   <TrendingUp className="h-10 w-10 text-primary mb-4" />
-                  <h3 className="font-semibold mb-2">Vote Share (30% Pool)</h3>
+                  <h3 className="font-semibold mb-2">Fixed Revenue Per Vote</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Earn based on your percentage of total platform votes
+                    Each vote earns the same amount from the 30% revenue pool
                   </p>
                   <div className="p-3 bg-muted rounded-lg">
                     <p className="text-xs text-muted-foreground">Formula:</p>
                     <p className="font-semibold text-xs">
-                      (Your Votes / Total Votes) × 30% of Ad Revenue
+                      Your Votes × (Pool / Total Votes)
                     </p>
                   </div>
                 </div>
@@ -59,63 +59,13 @@ export default function RevenuePage() {
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="h-6 w-6 text-primary" />
-                Revenue Calculator
-              </CardTitle>
-              <CardDescription>
-                Estimate your potential monthly earnings
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="p-6 rounded-lg border bg-gradient-to-br from-primary/10 to-primary/5">
-                  <h4 className="font-semibold mb-3">Example Calculation</h4>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Platform monthly ad revenue:</span>
-                      <span className="font-semibold">$1,000</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Vote share pool (30%):</span>
-                      <span className="font-semibold">$300</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Popularity bonus pool (20%):</span>
-                      <span className="font-semibold">$200</span>
-                    </div>
-                    <div className="border-t pt-3 mt-3">
-                      <p className="text-muted-foreground mb-2">If your server has 5,000 votes out of 100,000 total:</p>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Vote share (5%):</span>
-                        <span className="font-semibold">$15.00</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Rank #5 bonus:</span>
-                        <span className="font-semibold">+$18.00</span>
-                      </div>
-                      <div className="flex justify-between pt-2 border-t mt-2">
-                        <span className="font-bold">Total earned:</span>
-                        <span className="font-bold text-green-600">$33.00</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-                  <p className="text-sm font-semibold mb-2">💡 Key Points</p>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Revenue depends on platform's monthly ad earnings</li>
-                    <li>• More votes = higher percentage of the pool</li>
-                    <li>• Top 10 servers get significant popularity bonuses</li>
-                    <li>• Servers with ads disabled receive 50% penalty</li>
-                  </ul>
-                </div>
+              <div className="mt-6 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                <p className="text-sm font-semibold mb-2 text-destructive">⚠️ Important: Ads Required</p>
+                <p className="text-sm text-muted-foreground">
+                  <strong>Servers with ads disabled receive $0.00</strong> - no revenue sharing.
+                  You must enable ads on your server page to participate in revenue sharing.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -132,24 +82,24 @@ export default function RevenuePage() {
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-                    1
+                    ✓
                   </div>
                   <div>
-                    <p className="font-semibold">Enable Ads (Default)</p>
+                    <p className="font-semibold text-green-600">Enable Ads (Recommended)</p>
                     <p className="text-sm text-muted-foreground">
-                      Ads appear on your server page, and you earn from votes + ad impressions
+                      Ads appear on your server page, and you earn revenue from every vote
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-                    2
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-destructive/20 flex items-center justify-center text-destructive font-bold text-sm">
+                    ✗
                   </div>
                   <div>
-                    <p className="font-semibold">Disable Ads</p>
+                    <p className="font-semibold text-destructive">Disable Ads</p>
                     <p className="text-sm text-muted-foreground">
-                      No ads on your server page, but you still earn from votes
+                      No ads on your server page, <strong>but you earn $0.00 from revenue sharing</strong>
                     </p>
                   </div>
                 </div>

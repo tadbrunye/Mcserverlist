@@ -279,8 +279,8 @@ export function ServerOwnerDashboard() {
                   <p className="text-3xl font-bold text-green-600">
                     ${stats.totalRevenue.toFixed(2)}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.server.adsEnabled ? 'Ads enabled' : 'Ads disabled (50% penalty)'}
+                  <p className={`text-xs font-semibold ${stats.server.adsEnabled ? 'text-green-600' : 'text-destructive'}`}>
+                    {stats.server.adsEnabled ? '✓ Ads enabled - Earning revenue' : '✗ Ads disabled - No revenue'}
                   </p>
                 </div>
               </div>
@@ -291,11 +291,18 @@ export function ServerOwnerDashboard() {
                   <span className="font-semibold">{stats.server.monthlyVotes}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Revenue Share:</span>
+                  <span className="text-muted-foreground">Revenue Model:</span>
                   <span className="font-semibold">
-                    Based on % of total platform votes
+                    Fixed amount per vote
                   </span>
                 </div>
+                {!stats.server.adsEnabled && (
+                  <div className="mt-3 p-3 bg-destructive/10 rounded border border-destructive/20">
+                    <p className="text-xs text-destructive font-semibold">
+                      ⚠️ Enable ads in your server settings to start earning revenue from votes!
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -338,28 +345,30 @@ export function ServerOwnerDashboard() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="p-4 bg-muted rounded-lg">
-            <h4 className="font-semibold mb-2">💰 Percentage-Based Distribution</h4>
+            <h4 className="font-semibold mb-2">💰 Fixed Revenue Per Vote</h4>
             <p className="text-sm text-muted-foreground mb-3">
-              Revenue is distributed monthly based on your percentage of total platform votes:
+              Revenue is distributed monthly with each vote earning the same amount:
             </p>
             <ul className="text-sm text-muted-foreground space-y-1 ml-4">
               <li>• Platform collects ad revenue each month</li>
               <li>• 30% of ad revenue goes into vote share pool</li>
-              <li>• Your server gets: (Your Votes / Total Votes) × Pool Amount</li>
+              <li>• Pool is divided by total votes (ads enabled servers only)</li>
+              <li>• Your server gets: Your Votes × Value Per Vote</li>
               <li>• Top 10 servers get additional 20% popularity bonus</li>
-              <li>• Servers with ads disabled receive 50% penalty</li>
+              <li>• <strong className="text-destructive">Servers with ads disabled get $0.00</strong></li>
             </ul>
           </div>
 
           <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
             <h4 className="font-semibold mb-2">📈 Example Calculation</h4>
             <p className="text-sm text-muted-foreground">
-              If platform earns $1,000 in ads, and your server has 5,000 votes out of 100,000 total:
+              If platform earns $1,000 in ads, and total votes (ads enabled) = 100,000:
             </p>
             <div className="mt-2 space-y-1 text-sm">
               <p>• Vote pool: $1,000 × 30% = <strong>$300</strong></p>
-              <p>• Your share: 5,000/100,000 = <strong>5%</strong></p>
-              <p>• Your revenue: $300 × 5% = <strong>$15.00</strong></p>
+              <p>• Value per vote: $300 / 100,000 = <strong>$0.003</strong></p>
+              <p>• Your 5,000 votes: 5,000 × $0.003 = <strong>$15.00</strong></p>
+              <p className="text-destructive">• <strong>If ads disabled: $0.00</strong></p>
             </div>
           </div>
 
