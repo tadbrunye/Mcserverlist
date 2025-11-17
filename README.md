@@ -13,10 +13,11 @@ A modern, feature-rich Minecraft server list platform with voting, revenue shari
 - **Search & Filters** - Filter by game mode, sort by votes/players/rating
 
 ### 💰 Monetization
-- **Ad Integration** - Optional Google AdSense integration
+- **Ad Integration** - Optional Google AdSense integration per server
 - **Promoted Listings** - Featured spots at the top of the list
-- **Revenue Sharing** - Servers earn money from votes
-- **Popularity Bonuses** - Additional revenue for popular servers
+- **Percentage-Based Revenue Sharing** - 30% of ad revenue distributed by vote share
+- **Popularity Bonuses** - Top 10 servers get extra 20% of ad revenue
+- **Server Owner Dashboard** - Track earnings, votes, and statistics
 
 ### 🎨 Modern Design
 - **Responsive UI** - Mobile-friendly design with Tailwind CSS
@@ -103,7 +104,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to see the application.
 
-## Server Ping Worker
+## Background Workers
+
+### Server Ping Worker
 
 To automatically ping servers and update player counts, run the ping worker as a cron job:
 
@@ -116,6 +119,23 @@ Or manually:
 ```bash
 npm run ping:servers
 ```
+
+### Revenue Distribution
+
+To distribute monthly ad revenue to servers based on their votes:
+
+```bash
+# After calculating monthly ad revenue, run:
+npm run distribute:revenue 1000  # Replace 1000 with actual monthly ad revenue
+
+# This will:
+# - Calculate each server's vote share (30% pool)
+# - Add popularity bonuses for top 10 (20% pool)
+# - Apply 50% penalty to servers with ads disabled
+# - Update server balances and create revenue records
+```
+
+Run this at the start of each month after tallying ad revenue.
 
 ## Setting Up Votifier
 
@@ -132,27 +152,61 @@ Server owners can configure Votifier to receive vote notifications:
 
 ### How It Works
 
-1. **Vote Revenue**: Servers earn $0.001 per vote (configurable)
-2. **Ad Revenue**: Servers with ads enabled earn a percentage of ad revenue
-3. **Popularity Bonus**: Top servers earn additional revenue
+Revenue is distributed monthly based on **percentage of total votes**:
+
+1. **Vote Share Pool (30%)**: 30% of monthly ad revenue is distributed to all servers based on their vote percentage
+   - Formula: `(Server Votes / Total Votes) × Vote Pool`
+   - Example: Server with 5% of votes gets 5% of the pool
+
+2. **Popularity Bonus (20%)**: Top 10 servers get additional revenue from a 20% pool
+   - Rank #1: 25% of bonus pool
+   - Rank #2: 18% of bonus pool
+   - Rank #3-10: Decreasing percentages
+
+3. **Ad Settings**: Servers can optionally disable ads
+   - Servers with ads enabled: Get full revenue share
+   - Servers with ads disabled: 50% penalty applied
+
+### Example Calculation
+
+If platform earns $1,000/month in ads and your server gets 5,000 votes out of 100,000 total:
+
+- Vote pool: $1,000 × 30% = $300
+- Your vote share: 5,000/100,000 = 5%
+- Your revenue: $300 × 5% = **$15.00**
+- If ranked #5: Add popularity bonus of **$18.00**
+- **Total: $33.00**
 
 ### Configuring Revenue
 
 Edit in `.env`:
 ```env
-VOTE_REVENUE_SHARE_PERCENT=30      # % of ad revenue shared per vote
-POPULARITY_REVENUE_SHARE_PERCENT=20 # % shared with popular servers
+AD_REVENUE_POOL_PERCENT=30         # % of ad revenue for vote share
+POPULARITY_BONUS_PERCENT=20        # % of ad revenue for top 10 bonus
 ```
 
 ## Admin Dashboard
 
 Access the admin dashboard at `/admin` (requires ADMIN role).
 
-### Features:
+### Admin Features:
 - Approve/reject new servers
 - View global statistics
-- Monitor revenue
+- Monitor revenue records
 - Manage promoted listings
+
+## Server Owner Dashboard
+
+Access at `/dashboard` (requires authentication).
+
+### Features:
+- View all your servers and statistics
+- Track monthly and all-time votes
+- Monitor revenue earned per server
+- See detailed analytics (24h, 7d, 30d vote trends)
+- Player count history graphs
+- Revenue breakdown and calculations
+- Understand how revenue sharing works
 
 ### Creating an Admin User
 
@@ -168,6 +222,8 @@ UPDATE "User" SET role = 'ADMIN' WHERE email = 'your@email.com';
 - `GET /api/servers` - List servers with filters
 - `POST /api/servers` - Create new server (authenticated)
 - `GET /api/servers/promoted` - Get promoted servers
+- `GET /api/my-servers` - Get user's servers (authenticated)
+- `GET /api/my-servers/[id]/stats` - Get detailed server statistics (owner only)
 
 ### Voting
 - `POST /api/servers/[id]/vote` - Submit a vote (requires hCaptcha)

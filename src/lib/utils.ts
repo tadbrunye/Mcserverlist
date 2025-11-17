@@ -35,7 +35,40 @@ export function formatRelativeTime(date: Date): string {
   return formatDate(date)
 }
 
-export function calculateRevenue(votes: number, adRevenue: number): number {
-  const voteSharePercent = parseInt(process.env.VOTE_REVENUE_SHARE_PERCENT || '30')
-  return (votes * 0.01) + (adRevenue * voteSharePercent / 100)
+/**
+ * Calculate revenue share for a server based on their vote percentage
+ * @param serverVotes - Number of votes this server received
+ * @param totalVotes - Total votes across all servers
+ * @param totalAdRevenue - Total ad revenue for the period
+ * @returns Revenue amount for this server
+ */
+export function calculateRevenueShare(
+  serverVotes: number,
+  totalVotes: number,
+  totalAdRevenue: number
+): number {
+  if (totalVotes === 0) return 0
+
+  const poolPercent = parseInt(process.env.AD_REVENUE_POOL_PERCENT || '30')
+  const revenuePool = totalAdRevenue * (poolPercent / 100)
+  const voteShare = serverVotes / totalVotes
+
+  return revenuePool * voteShare
+}
+
+/**
+ * Calculate popularity bonus for top servers
+ * @param rank - Server's ranking (1-10)
+ * @param totalAdRevenue - Total ad revenue for the period
+ * @returns Bonus amount
+ */
+export function calculatePopularityBonus(rank: number, totalAdRevenue: number): number {
+  if (rank > 10) return 0
+
+  const bonusPercent = parseInt(process.env.POPULARITY_BONUS_PERCENT || '20')
+  const bonusPool = totalAdRevenue * (bonusPercent / 100)
+
+  // Top 10 servers get decreasing share of bonus pool
+  const weights = [25, 18, 14, 11, 9, 7, 6, 4, 3, 3] // Percentages that sum to 100
+  return (bonusPool * weights[rank - 1]) / 100
 }

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/Button'
-import { Gamepad2, Plus, User, LogOut, LayoutDashboard } from 'lucide-react'
+import { Gamepad2, Plus, User, LogOut, LayoutDashboard, BarChart3 } from 'lucide-react'
 
 export function Header() {
   const { data: session } = useSession()
@@ -44,19 +44,24 @@ export function Header() {
                   <span className="text-sm font-medium hidden md:inline">
                     {session.user.name}
                   </span>
+                  <Link href="/dashboard">
+                    <Button variant="ghost" size="sm" title="My Dashboard">
+                      <BarChart3 className="h-4 w-4" />
+                    </Button>
+                  </Link>
                   {session.user.role === 'ADMIN' && (
                     <Link href="/admin">
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" title="Admin Dashboard">
                         <LayoutDashboard className="h-4 w-4" />
                       </Button>
                     </Link>
                   )}
                   <Link href="/profile">
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" title="Profile">
                       <User className="h-4 w-4" />
                     </Button>
                   </Link>
-                  <Button variant="ghost" size="sm" onClick={() => signOut()}>
+                  <Button variant="ghost" size="sm" onClick={() => signOut()} title="Sign Out">
                     <LogOut className="h-4 w-4" />
                   </Button>
                 </div>

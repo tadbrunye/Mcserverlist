@@ -11,7 +11,8 @@
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "ping:servers": "tsx src/workers/ping-servers.ts"
+    "ping:servers": "tsx src/workers/ping-servers.ts",
+    "distribute:revenue": "tsx src/workers/distribute-revenue.ts"
   },
   "dependencies": {
     "@hcaptcha/react-hcaptcha": "^1.10.1",

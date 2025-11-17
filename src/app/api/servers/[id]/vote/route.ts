@@ -60,16 +60,13 @@ export async function POST(
       return NextResponse.json({ error: 'Server not found' }, { status: 404 })
     }
 
-    // Calculate vote reward
-    const voteReward = 0.001 // $0.001 per vote for revenue sharing
-
-    // Create vote
+    // Create vote (reward calculated during monthly distribution)
     const vote = await prisma.vote.create({
       data: {
         serverId: params.id,
         username,
         ipAddress: ip,
-        reward: voteReward,
+        reward: 0, // Will be calculated during revenue distribution
       },
     })
 
@@ -79,17 +76,6 @@ export async function POST(
       data: {
         totalVotes: { increment: 1 },
         monthlyVotes: { increment: 1 },
-        revenueEarned: { increment: voteReward },
-      },
-    })
-
-    // Create revenue record
-    await prisma.revenue.create({
-      data: {
-        amount: voteReward,
-        type: 'VOTE_SHARE',
-        source: params.id,
-        description: `Vote reward for ${server.name}`,
       },
     })
 
@@ -110,8 +96,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Vote recorded successfully!',
-      reward: voteReward,
+      message: 'Vote recorded successfully! Server will earn from ad revenue pool.',
     })
   } catch (error) {
     console.error('Error processing vote:', error)
