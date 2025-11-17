@@ -1,0 +1,237 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  servers       Server[]
+  reviews       Review[]
+  votes         Vote[]
+  accounts      Account[]
+  sessions      Session[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Server {
+  id                String    @id @default(cuid())
+  name              String
+  description       String    @db.Text
+  address           String    @unique
+  port              Int       @default(25565)
+  version           String?
+  gameMode          GameMode
+  website           String?
+  discordLink       String?
+  storeLink         String?
+  votifierAddress   String?
+  votifierPort      Int?
+  votifierToken     String?
+  banner            String?
+
+  // Stats
+  online            Boolean   @default(false)
+  playerCount       Int       @default(0)
+  maxPlayers        Int       @default(0)
+  totalVotes        Int       @default(0)
+  monthlyVotes      Int       @default(0)
+  lastPing          DateTime?
+  averageRating     Float     @default(0)
+
+  // Revenue sharing
+  adsEnabled        Boolean   @default(true)
+  revenueEarned     Float     @default(0)
+
+  // Moderation
+  approved          Boolean   @default(false)
+  featured          Boolean   @default(false)
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  ownerId           String
+  owner             User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  votes             Vote[]
+  reviews           Review[]
+  stats             ServerStats[]
+  promotedListings  PromotedListing[]
+  tags              ServerTag[]
+}
+
+enum GameMode {
+  SURVIVAL
+  CREATIVE
+  ADVENTURE
+  HARDCORE
+  SKYBLOCK
+  PRISON
+  FACTIONS
+  MINIGAMES
+  ROLEPLAY
+  MODDED
+  VANILLA
+  ANARCHY
+  PARKOUR
+  PVP
+  BEDWARS
+  SKYWARS
+  OTHER
+}
+
+model ServerTag {
+  id       String @id @default(cuid())
+  serverId String
+  tag      String
+
+  server   Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, tag])
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  username  String
+  ipAddress String
+  reward    Float    @default(0)
+  createdAt DateTime @default(now())
+
+  serverId  String
+  server    Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([serverId, createdAt])
+  @@index([ipAddress, createdAt])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      // 1-5 stars
+  comment   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  serverId  String
+  server    Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, userId])
+}
+
+model ServerStats {
+  id          String   @id @default(cuid())
+  playerCount Int
+  maxPlayers  Int
+  online      Boolean
+  createdAt   DateTime @default(now())
+
+  serverId    String
+  server      Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@index([serverId, createdAt])
+}
+
+model PromotedListing {
+  id          String   @id @default(cuid())
+  position    Int      // 1, 2, 3, etc.
+  startDate   DateTime
+  endDate     DateTime
+  price       Float
+  paid        Boolean  @default(false)
+  active      Boolean  @default(true)
+
+  serverId    String
+  server      Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@index([active, startDate, endDate])
+}
+
+model Revenue {
+  id          String       @id @default(cuid())
+  amount      Float
+  type        RevenueType
+  source      String       // Server ID or promotion ID
+  description String
+  distributed Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+
+  @@index([type, createdAt])
+}
+
+enum RevenueType {
+  VOTE_SHARE
+  POPULARITY_SHARE
+  PROMOTED_LISTING
+  AD_REVENUE
+}
+
+model GlobalStats {
+  id              String   @id @default(cuid())
+  totalServers    Int      @default(0)
+  totalVotes      Int      @default(0)
+  totalPlayers    Int      @default(0)
+  totalRevenue    Float    @default(0)
+  updatedAt       DateTime @updatedAt
+}
